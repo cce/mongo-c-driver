@@ -285,11 +285,22 @@ MONGO_EXPORT void bson_iterator_dispose(bson_iterator* i) {
 MONGO_EXPORT void bson_iterator_init( bson_iterator *i, const bson *b ) {
     i->cur = b->data + 4;
     i->first = 1;
+    i->end = b->data + b->dataSize;
 }
 
 MONGO_EXPORT void bson_iterator_from_buffer( bson_iterator *i, const char *buffer ) {
     i->cur = buffer + 4;
     i->first = 1;
+    i->end = NULL;
+}
+
+MONGO_EXPORT void bson_iterator_from_buffer_end( bson_iterator *i, const char *buffer, const char *end ) {
+    bson_iterator_from_buffer(i, buffer);
+    i->end = end;
+}
+
+MONGO_EXPORT void bson_iterator_from_buffer_length( bson_iterator *i, const char *buffer, size_t length ) {
+    bson_iterator_from_buffer_end(i, buffer, buffer + length);
 }
 
 MONGO_EXPORT bson_type bson_find( bson_iterator *it, const bson *obj, const char *name ) {
@@ -368,7 +379,12 @@ MONGO_EXPORT bson_type bson_iterator_next( bson_iterator *i ) {
     }
     }
 
-    i->cur += 1 + strlen( i->cur + 1 ) + 1 + ds;
+    size_t advance = 1 + strlen( i->cur + 1 ) + 1 + ds;
+    // if the end is set, are we are about to advance past it?
+    if (i->end != NULL && i->end <= (i->cur + advance))
+        return BSON_EOO;
+    else // bounds check passed, or not enabled
+        i->cur += advance;
 
     return ( bson_type )( *i->cur );
 }
@@ -574,7 +590,7 @@ MONGO_EXPORT void bson_iterator_subobject( const bson_iterator *i, bson *sub ) {
 }
 
 MONGO_EXPORT void bson_iterator_subiterator( const bson_iterator *i, bson_iterator *sub ) {
-    bson_iterator_from_buffer( sub, bson_iterator_value( i ) );
+    bson_iterator_from_buffer_end( sub, bson_iterator_value( i ), i->end );
 }
 
 /* ----------------------------

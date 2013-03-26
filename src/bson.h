@@ -126,7 +126,7 @@ typedef enum {
 typedef int bson_bool_t;
 
 typedef struct {
-    const char *cur;
+    const char *cur, *end;
     bson_bool_t first;
 } bson_iterator;
 
@@ -224,6 +224,7 @@ MONGO_EXPORT void bson_iterator_init( bson_iterator *i , const bson *b );
  * @param buffer the buffer to point to.
  */
 MONGO_EXPORT void bson_iterator_from_buffer( bson_iterator *i, const char *buffer );
+MONGO_EXPORT void bson_iterator_from_buffer_length( bson_iterator *i, const char *buffer, size_t length );
 
 /* more returns true for eoo. best to loop with bson_iterator_next(&it) */
 /**
