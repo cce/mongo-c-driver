@@ -82,6 +82,13 @@ MONGO_EXPORT int bson_copy( bson *out, const bson *in ) {
 
 int bson_init_data( bson *b, char *data ) {
     b->data = data;
+    b->dataSize = 0; // length unknown
+    return BSON_OK;
+}
+
+int bson_init_data_length( bson *b, char *data, size_t length ) {
+    b->data = data;
+    b->dataSize = length;
     return BSON_OK;
 }
 
@@ -285,7 +292,10 @@ MONGO_EXPORT void bson_iterator_dispose(bson_iterator* i) {
 MONGO_EXPORT void bson_iterator_init( bson_iterator *i, const bson *b ) {
     i->cur = b->data + 4;
     i->first = 1;
-    i->end = b->data + b->dataSize;
+    if (b->dataSize > 0)
+        i->end = b->data + b->dataSize;
+    else
+        i->end = NULL;
 }
 
 MONGO_EXPORT void bson_iterator_from_buffer( bson_iterator *i, const char *buffer ) {

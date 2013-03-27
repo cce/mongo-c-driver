@@ -309,11 +309,32 @@ int test_bson_size( void ) {
     return 0;
 }
 
+int test_bson_lengths() {
+    // {"hello": "world"} from http://bsonspec.org/#/specification
+    const char hello[] = "\x16\x00\x00\x00\x02hello\x00"
+                         "\x06\x00\x00\x00world\x00\x00";
+    char* bad_buf = malloc(sizeof(hello));
+    ASSERT(bad_buf);
+    memcpy(bad_buf, hello, sizeof(hello));
+    // double overall size of BSON object
+    bad_buf[0] = '\x32';
+    // double length of "world" string
+    bad_buf[11] = '\x12';
+    bson_iterator i;
+    //bson_iterator_from_buffer(&i, bad_buf); // valgrind errors
+    bson_iterator_from_buffer_length(&i, bad_buf, sizeof(hello));
+    while (bson_iterator_next(&i)) {
+        printf("i: %x, offset: %u\n", *i.cur, (i.cur - bad_buf));
+    }
+    return 0;
+}
+
 int main() {
 
   test_bson_generic();
   test_bson_iterator();
   test_bson_size();
+  test_bson_lengths();
 
   return 0;
 }

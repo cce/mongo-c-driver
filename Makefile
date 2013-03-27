@@ -77,7 +77,7 @@ $(shell rm header_check.tmp tmp.c)
 TEST_DEFINES=$(ALL_DEFINES)
 TEST_DEFINES+=-DTEST_SERVER="\"127.0.0.1\""
 
-OPTIMIZATION?=-O3
+OPTIMIZATION?=-O0
 WARNINGS?=-Wall
 DEBUG?=-ggdb
 STD?=c99
@@ -200,7 +200,7 @@ deps:
 	$(MAKE) CFLAGS="-m32" LDFLAGS="-pg"
 
 test_%: test/%_test.c test/test.h $(MONGO_STLIBNAME)
-	$(CC) -o $@ -L. -Isrc $(TEST_DEFINES) $(ALL_LDFLAGS) $< $(MONGO_STLIBNAME)
+	$(CC) -o $@ -L. -Isrc $(TEST_DEFINES) $(ALL_CFLAGS) $(ALL_LDFLAGS) $< $(MONGO_STLIBNAME)
 
 %.o: %.c
 	$(CC) -o $@ -c $(ALL_CFLAGS) $<
